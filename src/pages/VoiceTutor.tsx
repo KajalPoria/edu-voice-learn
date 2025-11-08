@@ -18,20 +18,98 @@ interface Message {
 
 const VoiceTutor = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hello! I'm EduWhiz, your AI study companion. Ask me anything about your lessons, and I'll help you understand better. You can type or use voice!",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [motivationMode, setMotivationMode] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState("Sarah");
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Initialize user and load or create conversation
+  useEffect(() => {
+    const initializeChat = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login to use Voice Tutor");
+        navigate("/auth");
+        return;
+      }
+      setUserId(user.id);
+
+      // Load existing conversation or create new one
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      let currentConversationId: string;
+
+      if (conversations && conversations.length > 0) {
+        // Load existing conversation
+        currentConversationId = conversations[0].id;
+        setConversationId(currentConversationId);
+
+        // Load messages
+        const { data: chatMessages } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('conversation_id', currentConversationId)
+          .order('created_at', { ascending: true });
+
+        if (chatMessages && chatMessages.length > 0) {
+          setMessages(chatMessages.map(msg => ({
+            role: msg.role as "user" | "assistant",
+            content: msg.content
+          })));
+        } else {
+          // Set initial message if no messages exist
+          setMessages([{
+            role: "assistant",
+            content: "Hello! I'm EduWhiz, your AI study companion. Ask me anything about your lessons, and I'll help you understand better. You can type or use voice!",
+          }]);
+        }
+      } else {
+        // Create new conversation
+        const { data: newConversation } = await supabase
+          .from('conversations')
+          .insert({
+            user_id: user.id,
+            title: 'Voice Tutor Chat'
+          })
+          .select()
+          .single();
+
+        if (newConversation) {
+          currentConversationId = newConversation.id;
+          setConversationId(currentConversationId);
+          
+          const initialMessage = {
+            role: "assistant" as const,
+            content: "Hello! I'm EduWhiz, your AI study companion. Ask me anything about your lessons, and I'll help you understand better. You can type or use voice!",
+          };
+          
+          setMessages([initialMessage]);
+          
+          // Save initial message
+          await supabase.from('chat_messages').insert({
+            conversation_id: currentConversationId,
+            user_id: user.id,
+            role: initialMessage.role,
+            content: initialMessage.content
+          });
+        }
+      }
+    };
+
+    initializeChat();
+  }, [navigate]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -123,7 +201,7 @@ const VoiceTutor = () => {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !conversationId || !userId) return;
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
@@ -131,6 +209,20 @@ const VoiceTutor = () => {
     setIsLoading(true);
 
     try {
+      // Save user message to database
+      await supabase.from('chat_messages').insert({
+        conversation_id: conversationId,
+        user_id: userId,
+        role: userMessage.role,
+        content: userMessage.content
+      });
+
+      // Update conversation timestamp
+      await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', conversationId);
+
       const systemContext = motivationMode
         ? "You are an enthusiastic, motivating AI tutor. Be encouraging and positive!"
         : "";
@@ -199,6 +291,16 @@ const VoiceTutor = () => {
       // Speak the response if voice is enabled
       if (voiceEnabled && assistantMessage) {
         speakText(assistantMessage);
+      }
+
+      // Save assistant message to database
+      if (assistantMessage && conversationId && userId) {
+        await supabase.from('chat_messages').insert({
+          conversation_id: conversationId,
+          user_id: userId,
+          role: 'assistant',
+          content: assistantMessage
+        });
       }
     } catch (error: any) {
       console.error("Error:", error);
