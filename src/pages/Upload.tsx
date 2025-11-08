@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Upload as UploadIcon, FileText, Loader2, ArrowLeft, MessageSquare, Trophy, Sparkles } from "lucide-react";
+import { Brain, Upload as UploadIcon, FileText, Loader2, ArrowLeft, MessageSquare, Trophy, Sparkles, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AudioPlayer } from "@/components/AudioPlayer";
@@ -38,7 +38,36 @@ const Upload = () => {
 
     setLoading(true);
     try {
-      const text = await file.text();
+      let text = "";
+      
+      // Check if file is an image
+      const isImage = file.type.startsWith('image/');
+      
+      if (isImage) {
+        // Convert image to base64
+        const reader = new FileReader();
+        const imageData = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        console.log("Extracting text from image...");
+        toast.info("Extracting text from image...");
+
+        // Extract text from image using OCR
+        const { data: ocrData, error: ocrError } = await supabase.functions.invoke("extract-text-from-image", {
+          body: { imageData },
+        });
+
+        if (ocrError) throw ocrError;
+        text = ocrData.text;
+        console.log("Extracted text:", text);
+      } else {
+        // Read text file directly
+        text = await file.text();
+      }
+      
       setOriginalContent(text);
       
       const { data, error } = await supabase.functions.invoke("generate-summary", {
@@ -97,14 +126,14 @@ const Upload = () => {
               Upload Study Material
             </CardTitle>
             <CardDescription>
-              Support for PDF, DOCX, and TXT files (max 5MB)
+              Support for PDF, DOCX, TXT files and Images (JPG, PNG, WEBP) - max 5MB
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="flex items-center gap-4">
               <Input
                 type="file"
-                accept=".pdf,.docx,.txt"
+                accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp"
                 onChange={handleFileChange}
                 disabled={loading}
                 className="flex-1"
@@ -114,12 +143,16 @@ const Upload = () => {
             {file && (
               <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-muted to-muted/50 rounded-lg border border-primary/20 animate-fade-in">
                 <div className="p-3 rounded-lg bg-gradient-to-br from-primary to-secondary">
-                  <FileText className="w-6 h-6 text-white" />
+                  {file.type.startsWith('image/') ? (
+                    <ImageIcon className="w-6 h-6 text-white" />
+                  ) : (
+                    <FileText className="w-6 h-6 text-white" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">{file.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {(file.size / 1024).toFixed(2)} KB
+                    {(file.size / 1024).toFixed(2)} KB • {file.type.startsWith('image/') ? 'Image with OCR' : 'Text document'}
                   </p>
                 </div>
               </div>
@@ -134,7 +167,7 @@ const Upload = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Analyzing Document...
+                  {file?.type.startsWith('image/') ? 'Extracting Text from Image...' : 'Analyzing Document...'}
                 </>
               ) : (
                 <>
