@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Brain, Upload as UploadIcon, FileText, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { AudioPlayer } from "@/components/AudioPlayer";
+import { VoiceSelector } from "@/components/VoiceSelector";
 
 const Upload = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string>("");
+  const [selectedVoice, setSelectedVoice] = useState<string>("Sarah");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -127,17 +130,22 @@ const Upload = () => {
         {summary && (
           <Card className="border-primary/20 shadow-lg animate-fade-in">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-primary" />
-                AI-Generated Summary
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-primary" />
+                  AI-Generated Summary
+                </CardTitle>
+                <VoiceSelector value={selectedVoice} onChange={setSelectedVoice} />
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="prose prose-sm max-w-none">
                 <p className="text-foreground leading-relaxed">{summary}</p>
               </div>
               
-              <div className="mt-6 flex gap-3">
+              <AudioPlayer text={summary} voice={selectedVoice} />
+              
+              <div className="flex gap-3 pt-2">
                 <Button variant="default">
                   Generate Quiz
                 </Button>
