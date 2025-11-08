@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, Upload, LogOut, BookOpen, MessageSquare, Mic, Zap, Sparkles, TrendingUp, Award } from "lucide-react";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ const Dashboard = () => {
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
 
-      <header className="relative border-b border-border/50 glass-morphism sticky top-0 z-50">
+      <header className="relative border-b border-border/50 glass-morphism sticky top-0 z-50 transition-colors duration-500">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -74,14 +75,17 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground">AI Learning Platform</p>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            onClick={handleSignOut}
-            className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              onClick={handleSignOut}
+              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 

@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Brain, Mic, MicOff, Volume2, VolumeX, Send, Loader2, LogOut, ArrowLeft, Sparkles } from "lucide-react";
+import { Brain, Mic, MicOff, Volume2, VolumeX, Send, Loader2, LogOut, ArrowLeft, Sparkles, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -319,45 +320,65 @@ const VoiceTutor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-accent/10">
-      <header className="border-b border-border bg-card/80 backdrop-blur-lg sticky top-0 z-10">
+    <div className="min-h-screen bg-background relative overflow-hidden transition-colors duration-500">
+      {/* Animated background */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
+      <div className="absolute top-20 left-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+
+      <header className="relative border-b border-border/50 glass-morphism sticky top-0 z-50 transition-colors duration-500">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="hover:bg-primary/10">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-r from-accent to-secondary p-2.5 rounded-xl shadow-lg">
-                <Brain className="w-6 h-6 text-white" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-hero rounded-2xl blur-md opacity-60"></div>
+                <div className="relative bg-gradient-hero p-3 rounded-2xl shadow-glow">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">
-                  EduWhiz
+                <h1 className="text-2xl font-heading font-bold gradient-text">
+                  Voice Tutor
                 </h1>
-                <p className="text-xs text-muted-foreground">Voice Tutor</p>
+                <p className="text-xs text-muted-foreground">AI Voice Assistant</p>
               </div>
             </div>
           </div>
-          <Button variant="ghost" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={handleSignOut} className="hover:bg-destructive/10 hover:text-destructive">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-6 text-center animate-fade-in">
-          <p className="text-muted-foreground">
-            Ask questions via voice or text and get instant AI-powered explanations
+      <main className="relative container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8 text-center animate-fade-in">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-5 py-2 rounded-full mb-4 border border-primary/20">
+            <Star className="w-4 h-4 fill-primary" />
+            <span className="text-sm font-medium">AI-Powered Voice Learning</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-3">
+            Learn with <span className="gradient-text">Voice</span>
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Ask questions via voice or text and get instant AI-powered explanations with natural speech
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card className="h-[600px] flex flex-col border-accent/20 shadow-xl">
-              <CardHeader className="border-b bg-gradient-to-r from-accent/10 to-secondary/5 flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Volume2 className="w-5 h-5 text-accent" />
+          <div className="lg:col-span-2 animate-slide-up">
+            <Card className="h-[600px] flex flex-col glass-morphism border-border/50 shadow-float">
+              <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-secondary/5 flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2 font-heading">
+                  <div className="p-2 bg-gradient-hero rounded-lg">
+                    <Volume2 className="w-5 h-5 text-white" />
+                  </div>
                   Conversation
                 </CardTitle>
                 <div className="flex items-center gap-2">
@@ -438,10 +459,13 @@ const VoiceTutor = () => {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card className="border-primary/20">
+          <div className="space-y-6 animate-slide-in-right">
+            <Card className="glass-morphism border-border/50">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                <CardTitle className="text-lg">Settings</CardTitle>
+                <CardTitle className="text-lg font-heading flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Settings
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 <div className="flex items-center justify-between">
@@ -485,9 +509,9 @@ const VoiceTutor = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent">
+            <Card className="glass-morphism border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">How to Use</CardTitle>
+                <CardTitle className="text-lg font-heading">How to Use</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">
@@ -509,9 +533,9 @@ const VoiceTutor = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
+            <Card className="glass-morphism border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">Voice Features</CardTitle>
+                <CardTitle className="text-lg font-heading">Voice Features</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">
@@ -533,9 +557,9 @@ const VoiceTutor = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+            <Card className="glass-morphism border-border/50">
               <CardHeader>
-                <CardTitle className="text-lg">Quick Tips</CardTitle>
+                <CardTitle className="text-lg font-heading">Quick Tips</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">

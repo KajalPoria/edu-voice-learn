@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Brain, Upload, Zap, BookOpen, Award, TrendingUp, Mic, Sparkles, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,7 +7,12 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden transition-colors duration-500">
+      {/* Theme Toggle - Fixed Position */}
+      <div className="fixed top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
+      
       {/* Animated mesh background */}
       <div className="absolute inset-0 bg-gradient-mesh opacity-40"></div>
       
