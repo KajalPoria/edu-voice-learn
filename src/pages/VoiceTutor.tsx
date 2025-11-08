@@ -1,0 +1,417 @@
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Brain, Mic, MicOff, Volume2, VolumeX, Send, Loader2, LogOut, ArrowLeft, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+const VoiceTutor = () => {
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "assistant",
+      content: "Hello! I'm EduWhiz, your AI study companion. Ask me anything about your lessons, and I'll help you understand better. You can type or use voice!",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [isListening, setIsListening] = useState(false);
+  const [motivationMode, setMotivationMode] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = () => {
+        setIsListening(false);
+        toast.error("Voice recognition error");
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully");
+    navigate("/");
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current?.start();
+      setIsListening(true);
+      toast.info("Listening...");
+    }
+  };
+
+  const speakText = async (text: string) => {
+    if (!voiceEnabled) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("text-to-speech", {
+        body: { text: text.substring(0, 1000), voice: "Aria" },
+      });
+
+      if (error) throw error;
+
+      const binaryString = atob(data.audioContent);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+      
+      const audio = new Audio(url);
+      audio.play();
+    } catch (error: any) {
+      console.error("Error speaking:", error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const systemContext = motivationMode
+        ? "You are an enthusiastic, motivating AI tutor. Be encouraging and positive!"
+        : "";
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            messages: [...messages, userMessage],
+            context: systemContext,
+          }),
+        }
+      );
+
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to get response");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = "";
+
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (let line of lines) {
+          if (line.startsWith(":")) continue;
+          if (!line.trim() || !line.startsWith("data: ")) continue;
+
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantMessage += content;
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  role: "assistant",
+                  content: assistantMessage,
+                };
+                return newMessages;
+              });
+            }
+          } catch (e) {
+            // Skip invalid JSON
+          }
+        }
+      }
+
+      // Speak the response if voice is enabled
+      if (voiceEnabled && assistantMessage) {
+        speakText(assistantMessage);
+      }
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast.error(error.message || "Failed to send message");
+      setMessages((prev) => prev.slice(0, -1));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-accent/10">
+      <header className="border-b border-border bg-card/80 backdrop-blur-lg sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-r from-accent to-secondary p-2.5 rounded-xl shadow-lg">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">
+                  EduWhiz
+                </h1>
+                <p className="text-xs text-muted-foreground">Voice Tutor</p>
+              </div>
+            </div>
+          </div>
+          <Button variant="ghost" onClick={handleSignOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-6 text-center animate-fade-in">
+          <p className="text-muted-foreground">
+            Ask questions via voice or text and get instant AI-powered explanations
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card className="h-[600px] flex flex-col border-accent/20 shadow-xl">
+              <CardHeader className="border-b bg-gradient-to-r from-accent/10 to-secondary/5 flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Volume2 className="w-5 h-5 text-accent" />
+                  Conversation
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={voiceEnabled ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setVoiceEnabled(!voiceEnabled)}
+                  >
+                    {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col p-0">
+                <ScrollArea className="flex-1 p-4">
+                  <div className="space-y-4">
+                    {messages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`flex ${
+                          message.role === "user" ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                            message.role === "user"
+                              ? "bg-gradient-to-r from-accent to-secondary text-white"
+                              : "bg-muted text-foreground border border-border"
+                          } animate-fade-in`}
+                        >
+                          {message.role === "assistant" && message.content === "" ? (
+                            <div className="flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 animate-pulse" />
+                              <span className="text-sm">Thinking...</span>
+                            </div>
+                          ) : (
+                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={scrollRef} />
+                  </div>
+                </ScrollArea>
+
+                <div className="p-4 border-t bg-background">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={isListening ? "destructive" : "outline"}
+                      size="icon"
+                      onClick={toggleListening}
+                      disabled={isLoading}
+                    >
+                      {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </Button>
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Type your question..."
+                      disabled={isLoading}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={sendMessage}
+                      disabled={!input.trim() || isLoading}
+                      size="icon"
+                      className="bg-gradient-to-r from-accent to-secondary hover:opacity-90"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="border-primary/20">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+                <CardTitle className="text-lg">Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="motivation" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Motivation Mode
+                  </Label>
+                  <Switch
+                    id="motivation"
+                    checked={motivationMode}
+                    onCheckedChange={setMotivationMode}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent">
+              <CardHeader>
+                <CardTitle className="text-lg">How to Use</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5" />
+                  <p>Type or speak your questions</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5" />
+                  <p>Get instant AI explanations</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5" />
+                  <p>Listen to voice responses</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5" />
+                  <p>Enable motivation mode</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
+              <CardHeader>
+                <CardTitle className="text-lg">Voice Features</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5" />
+                  <p>Natural AI voices</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5" />
+                  <p>Real-time responses</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5" />
+                  <p>ElevenLabs powered</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5" />
+                  <p>Clear pronunciation</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Tips</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
+                  <p>Be specific with questions</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
+                  <p>Toggle voice on/off</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
+                  <p>Ask for examples</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
+                  <p>Request clarifications</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default VoiceTutor;

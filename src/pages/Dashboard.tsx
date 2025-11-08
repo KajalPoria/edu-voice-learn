@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Upload, LogOut, BookOpen, Award, TrendingUp } from "lucide-react";
+import { Brain, Upload, LogOut, BookOpen, Award, TrendingUp, MessageSquare, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -75,7 +75,7 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-all duration-300 border-primary/20">
             <CardHeader>
               <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center mb-2">
@@ -99,22 +99,45 @@ const Dashboard = () => {
           <Card className="hover:shadow-lg transition-all duration-300 border-secondary/20">
             <CardHeader>
               <div className="w-12 h-12 bg-gradient-to-r from-secondary to-accent rounded-xl flex items-center justify-center mb-2">
-                <Award className="w-6 h-6 text-white" />
+                <Trophy className="w-6 h-6 text-white" />
               </div>
-              <CardTitle>Quiz Progress</CardTitle>
-              <CardDescription>Track your learning achievements</CardDescription>
+              <CardTitle>Custom Quiz</CardTitle>
+              <CardDescription>Generate quizzes on any topic</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-secondary mb-1">0</div>
-                <div className="text-sm text-muted-foreground">Quizzes Completed</div>
-              </div>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => navigate("/quiz")}
+              >
+                <Trophy className="w-4 h-4 mr-2" />
+                Create Quiz
+              </Button>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 border-accent/20">
             <CardHeader>
               <div className="w-12 h-12 bg-gradient-to-r from-accent to-primary rounded-xl flex items-center justify-center mb-2">
+                <MessageSquare className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle>Voice Tutor</CardTitle>
+              <CardDescription>Chat with AI using voice</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                className="w-full bg-gradient-to-r from-accent to-secondary hover:opacity-90"
+                onClick={() => navigate("/voice-tutor")}
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Start Chat
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-all duration-300 border-primary/20">
+            <CardHeader>
+              <div className="w-12 h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center mb-2">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <CardTitle>Learning Streak</CardTitle>
@@ -131,19 +154,34 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest study sessions and uploads</CardDescription>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Get started with your learning journey</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-12 text-muted-foreground">
-              <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No activity yet. Upload your first study material to get started!</p>
-              <Button 
-                variant="hero" 
-                className="mt-4"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
                 onClick={() => navigate("/upload")}
               >
-                Get Started
+                <Upload className="w-6 h-6" />
+                <span>Upload Material</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
+                onClick={() => navigate("/quiz")}
+              >
+                <Trophy className="w-6 h-6" />
+                <span>Take a Quiz</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
+                onClick={() => navigate("/voice-tutor")}
+              >
+                <MessageSquare className="w-6 h-6" />
+                <span>Ask AI Tutor</span>
               </Button>
             </div>
           </CardContent>
