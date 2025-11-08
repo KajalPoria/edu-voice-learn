@@ -1,73 +1,90 @@
-# Welcome to your Lovable project
+# 🎓 EduWhiz – The Voice-Powered AI Study Companion
 
-## Project info
+> **Learn Smarter. Speak with Your Study Buddy.**  
+> Because your notes should finally talk back.
 
-**URL**: https://lovable.dev/projects/29758489-daa2-49cb-b252-bcd8e89baf09
+---
 
-## How can I edit this code?
+## 🧠 Overview
 
-There are several ways of editing your application.
+**EduWhiz** is an AI-powered EdTech web app that transforms study materials into **interactive, voice-based lessons**.  
+Students can upload PDFs, images, or lecture clips — and EduWhiz instantly turns them into **summaries, visual mind maps, quizzes, and narrated lessons**, guided by a **personal AI tutor** that adapts to their pace and learning style.
 
-**Use Lovable**
+Built for learners who think differently, EduWhiz combines intelligence, interactivity, and empathy to make studying engaging and personal.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/29758489-daa2-49cb-b252-bcd8e89baf09) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🌟 Key Features
 
-**Use your preferred IDE**
+### 📘 Upload & Context Engine
+- Upload PDFs, DOCX, text, diagrams, or lecture clips.  
+- AI reads, summarizes, and builds **structured mind maps**.  
+- Generates keywords, key points, and a “Generate Quiz” button instantly.  
+- All learning materials are securely stored in your personal dashboard.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🧠 Conversational AI Tutor
+- Speak or type to your **AI tutor** trained on your uploaded material.  
+- Understands your weak areas and adapts explanations in real time.  
+- Choose between simple or detailed explanations using commands like  
+  **“Explain simply”** or **“Explain deeply.”**  
+- All responses are narrated using natural voice synthesis.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 🧩 Adaptive Quiz System
+- Auto-generates quizzes from your content: MCQs, true/false, short answer, and fill-in-the-blank formats.  
+- Tracks your progress, identifies weak topics, and revises them using **spaced repetition**.  
+- Gives **spoken feedback and explanations** for incorrect answers.
 
-Follow these steps:
+### 🔊 Lesson Narration & Voice Cloning
+- Click “Listen Lesson” to hear your content narrated in realistic voices.  
+- Optionally, **clone your own voice** so lessons and explanations sound uniquely yours.  
+- Adjustable playback speed and multilingual narration.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 🌍 Multilingual & Cultural Learning
+- Translate lessons into any language.  
+- Provides region-specific analogies and examples to improve understanding.  
+- Narrates translations using native-sounding multilingual voices.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 💪 Motivation & Focus Mode
+- Personalized motivational voice messages based on quiz performance.  
+- Tracks progress and celebrates improvements:  
+  _“You’ve improved 20% in Thermodynamics! Keep going!”_
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 📊 Dashboard & Analytics
+- Displays summaries, mind maps, quiz scores, and overall progress.  
+- Predicts **Knowledge Retention Forecasts** based on learning history.  
+- Offers a “Study Stream” with personalized topic review suggestions.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 🚀 Why EduWhiz Stands Out
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+EduWhiz doesn’t just teach — it **listens, understands, and motivates**.  
+It blends **conversation, visualization, and narration** into one unified experience that feels more human than traditional e-learning apps.  
+With every interaction, EduWhiz learns how you learn best — creating a truly personalized educational journey.
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🏁 Hackathon Demo Flow
 
-## What technologies are used for this project?
+1. **Upload a PDF and a diagram** → EduWhiz generates summaries + mind map.  
+2. **Listen Lesson** → Natural voice narration (or your own cloned voice).  
+3. **Chat with Tutor** → Ask questions like “Explain simply.”  
+4. **Generate Quiz** → Adaptive quiz built on your uploaded content.  
+5. **Get Feedback** → Spoken explanation for wrong answers.  
+6. **Motivation Mode** → AI congratulates you and suggests next topics.  
+7. **Dashboard Update** → Retention forecast shows areas to review.
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔮 Future Vision
 
-## How can I deploy this project?
+- Introduce **Classroom Mode** for teachers to monitor student progress.  
+- Add **Gamified Learning Rewards** and streak challenges.  
+- Launch a **mobile app** with offline AI narration.  
+- Integrate with tools like **Google Classroom** and **Notion** for seamless learning.  
+- Expand personalization with **EduWhiz Learning Models (EPLMs)** to enhance adaptive accuracy.
 
-Simply open [Lovable](https://lovable.dev/projects/29758489-daa2-49cb-b252-bcd8e89baf09) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+© 2025 EduWhiz | The Voice That Teaches You
