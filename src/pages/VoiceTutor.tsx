@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Brain, Mic, MicOff, Volume2, VolumeX, Send, Loader2, LogOut, ArrowLeft, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ const VoiceTutor = () => {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [motivationMode, setMotivationMode] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState("Sarah");
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -83,7 +85,7 @@ const VoiceTutor = () => {
     try {
       console.log("Attempting to generate speech...");
       const { data, error } = await supabase.functions.invoke("text-to-speech", {
-        body: { text: text.substring(0, 1000), voice: "Sarah" },
+        body: { text: text.substring(0, 1000), voice: selectedVoice },
       });
 
       if (error) {
@@ -350,6 +352,33 @@ const VoiceTutor = () => {
                     checked={motivationMode}
                     onCheckedChange={setMotivationMode}
                   />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="voice-select" className="flex items-center gap-2">
+                    <Volume2 className="w-4 h-4" />
+                    Tutor Voice
+                  </Label>
+                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                    <SelectTrigger id="voice-select">
+                      <SelectValue placeholder="Select a voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sarah">Sarah (Default)</SelectItem>
+                      <SelectItem value="Aria">Aria</SelectItem>
+                      <SelectItem value="Roger">Roger</SelectItem>
+                      <SelectItem value="Laura">Laura</SelectItem>
+                      <SelectItem value="Charlie">Charlie</SelectItem>
+                      <SelectItem value="George">George</SelectItem>
+                      <SelectItem value="Callum">Callum</SelectItem>
+                      <SelectItem value="River">River</SelectItem>
+                      <SelectItem value="Liam">Liam</SelectItem>
+                      <SelectItem value="Charlotte">Charlotte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Choose your preferred tutor voice
+                  </p>
                 </div>
               </CardContent>
             </Card>
