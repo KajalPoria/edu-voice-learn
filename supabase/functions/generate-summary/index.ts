@@ -31,11 +31,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are an expert educational assistant. Create clear, concise summaries that highlight key concepts, important facts, and main ideas. Format your summaries to be easy to read and understand for students."
+            content: "You are an expert educational assistant. Create concise, clear summaries that highlight only the most important concepts and key takeaways. Keep summaries brief and focused - aim for 3-5 paragraphs maximum. Use simple, clear language that students can easily understand."
           },
           {
             role: "user",
-            content: `Please create a comprehensive summary of the following text. Include:\n1. Main topic and key concepts\n2. Important facts and details\n3. Key takeaways\n\nText:\n${text}`
+            content: `Create a brief, focused summary of this text. Include only:\n- Main topic (1-2 sentences)\n- 3-5 key concepts or facts\n- 2-3 important takeaways\n\nKeep it concise and student-friendly.\n\nText:\n${text}`
           }
         ],
       }),
