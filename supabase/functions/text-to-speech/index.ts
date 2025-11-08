@@ -22,7 +22,12 @@ serve(async (req) => {
       throw new Error("Text is required");
     }
 
-    console.log(`Generating speech for ${text.length} characters with voice: ${voice}`);
+    // Limit text length to prevent excessive credit usage (max 1000 characters)
+    const truncatedText = text.length > 1000 
+      ? text.substring(0, 1000) + "..." 
+      : text;
+
+    console.log(`Generating speech for ${truncatedText.length} characters with voice: ${voice}`);
 
     // Voice ID mapping
     const voiceIds: Record<string, string> = {
@@ -50,7 +55,7 @@ serve(async (req) => {
           "xi-api-key": ELEVENLABS_API_KEY,
         },
         body: JSON.stringify({
-          text,
+          text: truncatedText,
           model_id: model,
           voice_settings: {
             stability: 0.5,
@@ -63,6 +68,16 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("ElevenLabs API error:", response.status, errorText);
+      
+      // Handle specific error cases
+      if (response.status === 401) {
+        const errorData = JSON.parse(errorText);
+        if (errorData.detail?.status === "quota_exceeded") {
+          throw new Error("ElevenLabs quota exceeded. Please add credits to your account or try again later.");
+        }
+        throw new Error("Invalid ElevenLabs API key or authentication failed.");
+      }
+      
       throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 

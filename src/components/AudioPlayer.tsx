@@ -26,8 +26,13 @@ export const AudioPlayer = ({ text, voice = "Sarah" }: AudioPlayerProps) => {
   const generateAudio = async () => {
     setIsLoading(true);
     try {
+      // Limit text to 1000 characters to prevent excessive API usage
+      const truncatedText = text.length > 1000 
+        ? text.substring(0, 1000) + "..." 
+        : text;
+
       const { data, error } = await supabase.functions.invoke("text-to-speech", {
-        body: { text, voice },
+        body: { text: truncatedText, voice },
       });
 
       if (error) throw error;
@@ -51,10 +56,18 @@ export const AudioPlayer = ({ text, voice = "Sarah" }: AudioPlayerProps) => {
         }
       }, 100);
       
-      toast.success("Audio generated successfully!");
+      toast.success(text.length > 1000 ? "Audio generated (first 1000 chars)!" : "Audio generated successfully!");
     } catch (error: any) {
       console.error("Error generating audio:", error);
-      toast.error(error.message || "Failed to generate audio");
+      
+      // Show user-friendly error messages
+      if (error.message?.includes("quota exceeded")) {
+        toast.error("ElevenLabs credits exhausted. Please add credits to your account.");
+      } else if (error.message?.includes("authentication")) {
+        toast.error("Invalid API key. Please check your ElevenLabs credentials.");
+      } else {
+        toast.error(error.message || "Failed to generate audio");
+      }
     } finally {
       setIsLoading(false);
     }
