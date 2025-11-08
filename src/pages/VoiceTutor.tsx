@@ -81,12 +81,22 @@ const VoiceTutor = () => {
     if (!voiceEnabled) return;
 
     try {
+      console.log("Attempting to generate speech...");
       const { data, error } = await supabase.functions.invoke("text-to-speech", {
-        body: { text: text.substring(0, 1000), voice: "Aria" },
+        body: { text: text.substring(0, 1000), voice: "Sarah" },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("TTS error:", error);
+        toast.error(error.message || "Failed to generate speech");
+        throw error;
+      }
 
+      if (!data?.audioContent) {
+        throw new Error("No audio content received");
+      }
+
+      console.log("Speech generated, playing audio...");
       const binaryString = atob(data.audioContent);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
@@ -96,9 +106,17 @@ const VoiceTutor = () => {
       const url = URL.createObjectURL(blob);
       
       const audio = new Audio(url);
-      audio.play();
+      audio.play().catch(e => {
+        console.error("Audio playback error:", e);
+        toast.error("Failed to play audio");
+      });
+      
+      audio.onended = () => URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error("Error speaking:", error);
+      if (!error.message?.includes("Failed to generate speech")) {
+        toast.error("Voice playback failed. Please check your connection.");
+      }
     }
   };
 
