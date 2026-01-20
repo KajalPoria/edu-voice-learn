@@ -1,5 +1,4 @@
-# 🎓 EduWhiz – The Voice-Powered AI Study Companion
-
+# 🎓 EduWhiz – Perforated AI Tutor
 > **Learn Smarter. Speak with Your Study Buddy.**  
 > Because your notes should finally talk back.
 
