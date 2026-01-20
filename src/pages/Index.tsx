@@ -41,7 +41,7 @@ const Index = () => {
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-heading font-bold mb-8 animate-slide-up">
             <span className="gradient-text">Learn Smarter</span>
             <br />
-            <span className="text-foreground">with EduWhiz</span>
+            <span className="text-foreground">with EduWhiz-Perforted AI</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-up" style={{animationDelay: '0.1s'}}>
