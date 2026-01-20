@@ -183,7 +183,7 @@ const Index = () => {
               <span className="font-heading font-semibold text-xl">EduWhiz</span>
             </div>
             <p className="text-muted-foreground">
-              Built with ❤️ for Hackathon 2025 by <span className="font-semibold text-foreground">Kajal Poria</span>
+              Built with ❤️ for Hackathon by <span className="font-semibold text-foreground">Kajal Poria</span>
             </p>
           </div>
         </div>
